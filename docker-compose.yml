@@ -1,0 +1,19 @@
+version: '2'
+volumes:
+    shared-data:
+services:
+  audio:
+    image: balenablocks/audio
+    privileged: true
+    ports:
+      - 4317:4317
+  noise:
+    restart: always
+    build: ./noise
+    privileged: true
+    volumes:
+      - 'shared-data:/data/my_data'
+    ports:
+      - "8080:8080"
+    environment:
+      PULSE_SERVER: tcp:audio:4317
