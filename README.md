@@ -11,4 +11,4 @@ Here are the features of the noise machine:
 - Intuitive control panel with rotary wheel and LCD screen
 - Web-based control with a responsive UI for any client
 
-![initial plan](https://raw.githubusercontent.com/alanb128/ultimate-noise-box/main/initial_plan.jpeg)
+![initial plan](https://raw.githubusercontent.com/alanb128/ultimate-noise-box/main/initial_plan-50.jpeg)
