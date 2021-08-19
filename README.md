@@ -16,4 +16,8 @@ Here are the features of the noise machine:
 ## Containers
 
 ### Noise
-This is the Python program that plays back the audio files through the audio block. It uses Pygame to achieve gapless looping playback. The audio files must be in uncompressed PCM wav file format.
+This is the Python program that plays back the audio files through the audio block. It uses Pygame to achieve gapless looping playback. The audio files must be in uncompressed PCM wav file format. It exposes an API (using FlaskAPI) 
+- `GET /` returns the current status (`status`) and currently playing file (`file`) and a list of valid API calls.
+- `POST /play/<noisename>/` immediately starts looping playback of specified noise, and returns the current status (`status`) and currently playing file (`file`)
+- `POST /stop/` immediately stops any file playback, and returns the current status (`status`)
+
