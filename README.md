@@ -12,3 +12,8 @@ Here are the features of the noise machine:
 - Web-based control with a responsive UI for any client
 
 ![initial plan](https://raw.githubusercontent.com/alanb128/ultimate-noise-box/main/initial_plan-50.jpeg)
+
+## Containers
+
+### Noise
+This is the Python program that plays back the audio files through the audio block. It uses Pygame to achieve gapless looping playback. The audio files must be in uncompressed PCM wav file format.
