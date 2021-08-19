@@ -21,4 +21,4 @@ This is the Python program that plays back the audio files through the audio blo
 - `POST /play/<noisename>/` immediately starts looping playback of specified noise, and returns the current status (`status`) and currently playing file (`file`)
 - `POST /stop/` immediately stops any file playback, and returns the current status (`status`)
 
-Note <<noisename>> and returned file are the name of the noise, with no path or extension, and underscore (_) instead of spaces.
+Note `<noisename>` and returned file are the name of the noise, with no path or extension, and underscore (_) instead of spaces.
