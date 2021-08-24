@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Noise Box 64</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" type="text/css" href="w3.css">
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat">
+<script src="https://kit.fontawesome.com/c6beaf52e4.js" crossorigin="anonymous"></script>
+<style>
+body,h1,h2,h3,h4,h5,h6 {font-family: "Lato", sans-serif}
+.w3-bar,h1,button {font-family: "Montserrat", sans-serif}
+.fa-anchor,.fa-coffee {font-size:200px}
+
+.slidecontainer {
+  width: 100%; /* Width of the outside container */
+}
+
+/* The slider itself */
+.slider {
+  -webkit-appearance: none;  /* Override default CSS styles */
+  appearance: none;
+  width: 100%; /* Full-width */
+  height: 25px; /* Specified height */
+  background: #d3d3d3; /* Grey background */
+  outline: none; /* Remove outline */
+  opacity: 0.7; /* Set transparency (for mouse-over effects on hover) */
+  -webkit-transition: .2s; /* 0.2 seconds transition on hover */
+  transition: opacity .2s;
+}
+
+/* Mouse-over effects */
+.slider:hover {
+  opacity: 1; /* Fully shown on mouse-over */
+}
+
+/* The slider handle (use -webkit- (Chrome, Opera, Safari, Edge) and -moz- (Firefox) to override default look) */
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none; /* Override default look */
+  appearance: none;
+  width: 25px; /* Set a specific slider handle width */
+  height: 25px; /* Slider handle height */
+  background: #04AA6D; /* Green background */
+  cursor: pointer; /* Cursor on hover */
+}
+
+.slider::-moz-range-thumb {
+  width: 25px; /* Set a specific slider handle width */
+  height: 25px; /* Slider handle height */
+  background: #04AA6D; /* Green background */
+  cursor: pointer; /* Cursor on hover */
+}
+</style>
+<script>
+function playsound(filename) {
+  var request = new XMLHttpRequest();
+  var params = 'filename='+filename;
+  request.open("POST", "play", true);
+  request.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+  request.send(params);
+  document.getElementById("preset0").textContent=filename.replace('_', ' ');
+  document.getElementById("pimg0").innerHTML="<img src='/public/" + filename + ".jpg'>";
+}
+
+function stopsound() {
+  var request = new XMLHttpRequest();
+  request.open("POST", "stop", true);
+  request.send();
+  document.getElementById("preset0").textContent="(nothing)";
+  document.getElementById("pimg0").innerHTML="<img src='/public/default.jpg'>";
+}
+
+function preset(filename, preset) {
+  var request = new XMLHttpRequest();
+  var params = 'filename='+filename+'&preset='+preset;
+  request.open("POST", "preset", true);
+  request.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+  request.send(params);
+  document.getElementById("preset" + preset).textContent=filename.replace('_', ' ');
+  document.getElementById("pimg" + preset).innerHTML="<img src='/public/" + filename + ".jpg'>";
+  buildlink="<a id='preplay" + preset + "' class='w3-button w3-circle w3-small w3-blue' onclick=\"playsound('"+filename+"')\"><i class='fas fa-play'></i></a>";
+  document.getElementById("pbtn" + preset).innerHTML=buildlink;
+}
+
+</script>
+</head>
+<body>
+
+<!-- Navbar -->
+<div class="w3-top">
+  <div class="w3-bar w3-red w3-card w3-left-align w3-large">
+    &nbsp;&nbsp;Noise Box 64
+  </div>
+</div>
+<!-- First Grid -->
+<div class="w3-row-padding w3-padding-64 w3-container">
+  <div class="w3-padding w3-white w3-display-container">
+    <br /> <br />
+    
+
+    <h1>Welcome to your noise box</h1>
+    <br />
+
+    <table class="w3-table w3-bordered" id="tblNow"><tr class="w3-theme"><td width="10%"><span id="pimg0"><img src="/public/default.jpg"></span></td><td style="text-align: left;"><h2>Now Playing:
+    <br /><span id="preset0">(nothing)</span></h2>
+    <div class="slidecontainer">
+      <a class="w3-button w3-circle w3-small w3-blue" onclick="stopsound()"><i class="fas fa-stop"></i></a> &nbsp;&nbsp;&nbsp;
+      <input type="range" min="1" max="100" value="50" id="myRange">
+    </div>
+    </td></tr></table>
+
+    <br /><h3>Presets:</h3><br />
+
+    <table class="w3-table w3-striped w3-bordered" id="tblPre"><tr class="w3-theme"><td width="10%"><span id="pimg1"><img src="/public/<%= prlist[0]%>.jpg"></span></td>
+    <td style="text-align: left;"><h3>Preset 1: <span id="preset1"><%= prlist[0].replace('_', ' ')%> </span></h3>
+    <span id="pbtn1"><a id="preplay1" class="w3-button w3-circle w3-small w3-blue" onclick="playsound('<%= prlist[0]%>')"><i class="fas fa-play"></i></a></span></td></tr> 
+    
+    <tr class="w3-theme"><td width="10%"><span id="pimg2"><img src="/public/<%= prlist[1]%>.jpg"></span></td>
+    <td style="text-align: left;"><h3>Preset 2: <span id="preset2"><%= prlist[1].replace('_', ' ')%> </span></h3>
+    <span id="pbtn2"><a id="preplay2" class="w3-button w3-circle w3-small w3-blue" onclick="playsound('<%= prlist[1]%>')"><i class="fas fa-play"></i></a></span></td></tr>
+
+    <tr class="w3-theme"><td width="10%"><span id="pimg3"><img src="/public/<%= prlist[2]%>.jpg"></span></td>
+    <td style="text-align: left;"><h3>Preset 3: <span id="preset3"><%= prlist[2].replace('_', ' ')%> </span></h3>
+    <span id="pbtn3"><a id="preplay3" class="w3-button w3-circle w3-small w3-blue" onclick="playsound('<%= prlist[2]%>')"><i class="fas fa-play"></i></a></span></td></tr>
+
+    <tr class="w3-theme"><td width="10%"><span id="pimg4"><img src="/public/<%= prlist[3]%>.jpg"></span></td>
+    <td style="text-align: left;"><h3>Preset 4: <span id="preset4"><%= prlist[3].replace('_', ' ')%> </span></h3>
+    <span id="pbtn4"><a id="preplay4" class="w3-button w3-circle w3-small w3-blue" onclick="playsound('<%= prlist[3]%>')"><i class="fas fa-play"></i></a></span></td></tr>
+    </td></tr></table>
+    <br />
+    <h3>Library:</h3>
+    <br />
+    <%- assets %>
+  </div>
+</div>
+
+</body>
+</html>
