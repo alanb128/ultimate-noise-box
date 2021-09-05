@@ -24,3 +24,19 @@ services:
         - 80:80
       volumes:
         - 'shared-data:/data/my_data'
+  minio:
+    image: minio/minio:RELEASE.2021-06-17T00-10-46Z
+    volumes:
+      - 'shared-data:/data1'
+    ports:
+      - "9000:9000"
+    environment:
+      MINIO_ACCESS_KEY: myminio
+      MINIO_SECRET_KEY: myminio123
+      MINIO_REGION_NAME: myregion
+    command: minio server /data1
+  redis:
+    image: redis:6.2.4-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis-data:/data
