@@ -17,13 +17,13 @@ services:
       - "8080:8080"
     environment:
       PULSE_SERVER: tcp:audio:4317
-    webserver:
-      restart: always
-      build: ./webserver
-      ports:
-        - 80:80
-      volumes:
-        - 'shared-data:/data/my_data'
+  webserver:
+    restart: always
+    build: ./webserver
+    ports:
+      - 80:80
+    volumes:
+      - 'shared-data:/data/my_data'
   minio:
     image: minio/minio:RELEASE.2021-06-17T00-10-46Z
     volumes:
