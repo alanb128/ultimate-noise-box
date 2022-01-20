@@ -1,11 +1,15 @@
-FROM balenalib/raspberrypi3-python:3.7-build-20210705
-
-RUN apt-get update && apt-get install python3-pygame
-
-RUN pip3 install flask Flask-API
+FROM balenalib/raspberrypi3-ubuntu-python:3.7-bionic-build
 
 WORKDIR /usr/src/app
 
-COPY *.py ./
+RUN \
+    apt-get update && apt-get install -y ttf-dejavu libfreetype6-dev
 
-CMD [ "python3", "noise.py" ]
+RUN \
+    pip3 install pillow RPi.GPIO adafruit-circuitpython-rgb-display \
+    requests redis adafruit-circuitpython-seesaw
+
+COPY *.py ./
+COPY *.ttf ./
+
+CMD [ "python3", "controller.py" ]
