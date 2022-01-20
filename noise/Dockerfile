@@ -1,4 +1,4 @@
-FROM balenalib/raspberrypi3-python:3.7-build
+FROM balenalib/raspberrypi3-python:3.7-build-20210705
 
 RUN apt-get update && apt-get install python3-pygame
 
