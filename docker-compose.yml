@@ -1,6 +1,8 @@
 version: '2'
 volumes:
     shared-data:
+    redis-data:
+    web-data:
 services:
   audio:
     image: balenablocks/audio
@@ -17,13 +19,14 @@ services:
       - "8080:8080"
     environment:
       PULSE_SERVER: tcp:audio:4317
-  webserver:
+  utility:
+    build: ./utility
     restart: always
-    build: ./webserver
-    ports:
-      - 80:80
+    privileged: true
     volumes:
       - 'shared-data:/data/my_data'
+    ports:
+      - "8088:8088"
   minio:
     image: minio/minio:RELEASE.2021-06-17T00-10-46Z
     volumes:
@@ -40,3 +43,18 @@ services:
     command: ["redis-server", "--appendonly", "yes"]
     volumes:
       - redis-data:/data
+  webserver:
+    restart: always
+    build: ./webserver
+    ports:
+      - 80:80
+    volumes:
+      - 'shared-data:/data/my_data'
+  controller:
+    restart: always
+    privileged: true
+    build: ./controller
+    volumes:
+      - 'shared-data:/data/my_data'
+    labels:
+      io.balena.features.supervisor-api: '1'
