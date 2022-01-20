@@ -14,7 +14,19 @@ import RPi.GPIO as GPIO
 import requests
 import redis 
 import os
+from adafruit_seesaw import seesaw, rotaryio
 
+# Adafruit I2C QT Rotary Encoder
+# Using the INT output on Pi GPIO 17
+seesaw = seesaw.Seesaw(board.I2C(), addr=0x36)
+seesaw_product = (seesaw.get_version() >> 16) & 0xFFFF
+print("Found seesaw supported product {}".format(seesaw_product))
+if seesaw_product != 4991:
+    print("Wrong firmware loaded for QT encoder?  Expected 4991")
+# Set up the rotary click button, and add to interrupt
+seesaw.pin_mode(24, seesaw.INPUT_PULLUP)  # Pin on the QT
+seesaw.set_GPIO_interrupts(1 << 24, True)
+seesaw.enable_encoder_interrupt()
 
 # TFT configuration for CS and DC pins:
 cs_pin = digitalio.DigitalInOut(board.CE0) #pin24
@@ -63,26 +75,26 @@ img_info = Image.new("RGB", (128, 20), (0, 0, 0))
 # create idle image
 idle_image = Image.new("RGB", (width, height))
 
+# image for about screen
+img_about = Image.new("RGB", (width, height))
+
 # Drawing object for main display image
 draw = ImageDraw.Draw(image)
 
 wav_list = []  # list of available wav files to play (strings)
 img_list = []  # list of images to display for each wav file (images)
 vol_list = []  # list of volume bars representing volumes (images)
-#wav_pointer = 0  # index of curently displayed wav when rotating wheel (int)
 noise_pointer = 0  # index of currently displayed noise image when rotating wheel (int)
+rotary_pos = 0  # keeps track of wheel position
 now_playing = ""  # name of currently playing file or emply string
 display_mode = 0  # int display mode (0-2)
-in_button = 0  # a test for debouncing
 current_volume = 10  # current volume (0-20)
-
+loop_count = 0  # loop counter for checking the current sound status
 IMAGE_PATH = "/data/my_data/noise/"  # string path to images
 TEXT_FONT = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 18)
 ICON_FONT = ImageFont.truetype("/usr/src/app/materialdesignicons-webfont.ttf", 20)
 DEBOUNCE = 600  # switch debounce time in ms
 
-print(os.getenv('BALENA_SUPERVISOR_ADDRESS', 'no supv addr'))
-print(os.getenv('BALENA_SUPERVISOR_API_KEY', 'no api key'))
 def lib_setup():
     #
     # Generate list of all sound files available,
@@ -110,8 +122,6 @@ def lib_setup():
             text = noise_name.replace("_", " ")
             save_draw.text((20, 110), text, font=font, fill=(255, 255, 255),)
             img_list.append(save_image)
-            #print(wav_list)
-            #print(img_list)
     # generate a list of 20 vol images:
     for v in range(0, 19):
         save_image = Image.new("RGB", (width, height))
@@ -121,6 +131,7 @@ def lib_setup():
         save_image.paste(i, (0,50))
         text = "volume: " + str(v * 5) + " %"
         save_draw.text((20, 110), text, font=font, fill=(255, 255, 255),)
+        save_draw.text((1, 110), "\U000F057F", font=ICON_FONT, fill=(255, 255, 255),)
         vol_list.append(save_image)
 
 def create_idle_image():
@@ -128,7 +139,11 @@ def create_idle_image():
     # Create the idle image!
     #
     global idle_image
-    idle_image_raw = Image.open(IMAGE_PATH + "idle.jpg")
+    try:
+        idle_image_raw = Image.open(IMAGE_PATH + "idle.jpg")
+    except:
+        # if no idle image found, draw a rectangle instead
+        idle_image_raw = idle_image_raw.rectangle((0, 0, width, height), fill=(0, 100, 200))
     idle_image.paste(idle_image_raw, (0,0))  # use idle image
     idle_draw = ImageDraw.Draw(idle_image)
     idle_image.paste(img_info, (0, 108))
@@ -139,21 +154,21 @@ def create_idle_image():
 # Setup initial state
 def init_controller():
     print("init display")
-    global disp, image, draw, width, now_playing, idle_image
+    global disp, image, draw, now_playing, idle_image
 
     # Draw a blue box for init display
-    draw.rectangle((0, 0, width, height), fill=(0, 153, 153))
+    draw.rectangle((0, 0, width, height), fill=(0, 0, 72))
 
     # Load a TTF Font
     font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 24)
 
     # Draw splash screen
     text = "Welcome!"
-    draw.text((5, 10), text, font=font, fill=(255, 255, 0),)
+    draw.text((3, 10), text, font=font, fill=(255, 255, 0),)
     disp.image(image)
-    #time.sleep(2)
     lib_setup()
     create_idle_image()
+    display_info()
 
     # get current status
     r = requests.get('http://noise:5000/')
@@ -168,20 +183,54 @@ def init_controller():
         print("now playing: ", now_playing)
         display_now(img_list[wav_list.index(now_playing)])
 
+def current_status():
+    #
+    # Calls the noise service and updates display
+    #
+    # get current status
+    r = requests.get('http://noise:5000/')
+    j = r.json()
+    if j["status"] == "stop":
+        if now_playing != "":
+          now_playing = ""
+          display_now(idle_image)
+    else:
+        now_playing = j["file"]
+        print("now playing: ", now_playing)
+        display_now(img_list[wav_list.index(now_playing)])
+
 def display_info():
     #
     # Display device info on LCD
     #
-    draw.rectangle((0, 0, width, height), fill=(0, 0, 0))  # draw black box
-    #image.paste(img_list[wav_pointer], (0,0))  # use now playing image
-    font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 16)
-    draw.text((1, 60), "INFO coming soon!", font=font, fill=(255, 255, 255),)  # draw the rotate icon
-    disp.image(image)
+    global img_about
+    draw_about = ImageDraw.Draw(img_about)
+    font1 = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 16)
+    font2 = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 14)
+    img_about.paste(img_info, (0, 108))
+    draw_about.text((22, 110), "device info", font=TEXT_FONT, fill=(255, 255, 255),)
+    draw_about.text((1, 110), "\U000F02FD", font=ICON_FONT, fill=(255, 255, 255),)
+    # Prep screen to cover "Reading..."
+    draw_about.rectangle((0, 0, width, 107), fill=(0, 0, 72))  # draw blue bkgd
+    # Use supervisor API to get info
+    r = requests.get(os.getenv('BALENA_SUPERVISOR_ADDRESS') + "/v1/device?apikey=" + os.getenv('BALENA_SUPERVISOR_API_KEY'))
+    j = r.json()
+    #print(j["ip_address"])
+    #print(j["status"])
+    r = requests.get(os.getenv('BALENA_SUPERVISOR_ADDRESS') + "/v2/device/name?apikey=" + os.getenv('BALENA_SUPERVISOR_API_KEY'))
+    k = r.json()
+    draw_about.text((1, 7), "IP:", font=font2, fill=(255, 165, 0),)
+    draw_about.text((1, 41), "UUID:", font=font2, fill=(255, 165, 0),)
+    draw_about.text((1, 75), "NAME:", font=font2, fill=(255, 165, 0),)
+    draw_about.text((1, 23), j["ip_address"], font=font2, fill=(255, 255, 255),)
+    draw_about.text((1, 57), os.getenv('BALENA_DEVICE_UUID')[:7], font=font2, fill=(255, 255, 255),)
+    draw_about.text((1, 91), k["deviceName"], font=font2, fill=(255, 255, 255),)
 
 def button_stop(channel):
     #
     # stop payback
     #
+    global now_playing
     r = requests.post('http://noise:5000/stop/')
     print("Stop button pressed.")
     now_playing = ""
@@ -191,19 +240,22 @@ def button_display(channel):
     #
     # change display mode
     #
-    global display_mode
+    global display_mode, display_timer
+    print("pressed display button")
     display_mode = display_mode + 1
     if display_mode == 3:
         display_mode = 0
     # Decide what to display
     if display_mode == 0:
-        display_now(img_list[wav_list.index(now_playing)])
+        if now_playing == "":
+            display_now(idle_image)
+        else:
+            display_now(img_list[wav_list.index(now_playing)])
     elif display_mode == 1:
         image.paste(vol_list[current_volume], (0,0))
         disp.image(image)
-    else:
-        display_info()
-    print("Display mode {0}".format(display_mode))
+    elif display_mode == 2:
+        disp.image(img_about)
 
 def button_preset(channel):
     #
@@ -217,15 +269,19 @@ def button_preset(channel):
     p = r.get("p" + str(presety + 1))
     print("Preset {0} ({1}) pressed.".format(p, presety))
     # play/display the file image
-    text_icon = ["\U000F03A4", "\U000F03A7", "\U000F03AA", "\U000F03AD"]
-    play_file(p, text_icon[presety])
+    if p is None:
+        print("No preset value for {}".format(presety))
+    else:
+        text_icon = ["\U000F03A4", "\U000F03A7", "\U000F03AA", "\U000F03AD"]
+        play_file(p, text_icon[presety])
 
-def button_rotary_click(channel):
-    # rotary clicked
-    #time.sleep(0.2)
+def button_rotary_click():
+    #
+    # called on rotary click
+    #
+
     global display_mode
-    print("Rotary button click.")
-    # decide what to do:
+
     if display_mode == 0:
         if wav_list[noise_pointer] != now_playing:
             play_file(wav_list[noise_pointer])
@@ -248,76 +304,85 @@ def display_now(d_img, extra_icon=""):
     # sends specified image to lcd display
     # if "" then display idle image
     #
-    global disp, image, draw
+    global disp, image, draw, display_timer
 
-    # Draw icon
-    #draw.text((20, 110), text, font=font, fill=(255, 255, 255),)
-    #print("Extra icon: {0}".format(extra_icon))
     image.paste(d_img, (0,0))  # use now playing image
     #print("Now playing: {0}, wav_list.index(now_playing): {1}".format(now_playing, wav_list.index(now_playing)))
     draw.text((1, 110), "\U000F040A", font=ICON_FONT, fill=(255, 255, 255),)  # draw the play icon
     if len(extra_icon) > 0:   # draw the extra icon
-        draw.text((105, 5), extra_icon, font=ICON_FONT, fill=(255, 255, 255),)  # draw the play icon
+        draw.text((105, 5), extra_icon, font=ICON_FONT, fill=(255, 255, 255),)
 
     disp.image(image)
 
-def wheel_right(channel):
+def rotary_incoming(r):
+    #
+    # Triggerd by rotary QT interrupt
+    # when rotary wheel is turned or clicked
+    #
+    global rotary_pos
+    current_pos = seesaw.encoder_position()
+    rot_btn = seesaw.digital_read(24)
+    if rotary_pos == current_pos:
+        if rot_btn == True:
+            print("Button pressed!")
+            button_rotary_click()
+    else:
+        if current_pos < rotary_pos:
+            print("Turned right {}".format(current_pos))
+            # Action on every other (even) click
+            if (current_pos % 2) == 0:
+                wheel_right()
+        else:
+            print("Turned left {}".format(current_pos))
+            # Action on every other (even) click
+            if (current_pos % 2) == 0:
+                wheel_left()
+    rotary_pos = current_pos
+    #print("seesaw rotary data updated! {0}, {1}".format(rot_pos, rot_btn))
+    
+def wheel_right():
     #
     # Wheel turned right (>)
     #
-    #global counter, step, wav_pointer, ICON_FONT, image, draw, disp, current_volume
+    
     global noise_pointer, current_volume
 
-    clkState = GPIO.input(18)
-    dtState = GPIO.input(17)
+    if display_mode == 0:
+        noise_pointer = noise_pointer + 1
+        if noise_pointer > len(img_list) - 1:
+            noise_pointer = 0
+        image.paste(img_list[noise_pointer], (0,0))  # use now playing image
+        draw.text((1, 110), "\U000F04D7", font=ICON_FONT, fill=(255, 255, 255),)  # draw the right sel icon
+    elif display_mode == 1:
+        current_volume = current_volume + 1
+        if current_volume > 19:
+            current_volume = 19
+        else:
+            image.paste(vol_list[current_volume], (0,0))  # use now playing image
+    
+    disp.image(image)
 
-    if clkState == 0 and dtState == 1:
-        print("Wheel turned right.")
-        if display_mode == 0:
-            noise_pointer = noise_pointer + 1
-            if noise_pointer > len(img_list) - 1:
-                noise_pointer = 0
-            image.paste(img_list[noise_pointer], (0,0))  # use now playing image
-            #print("Now playing: {0}, wav_list.index(now_playing): {1}".format(now_playing, wav_list.index(now_playing)))
-            draw.text((1, 110), "\U000F04D7", font=ICON_FONT, fill=(255, 255, 255),)  # draw the play icon
-        elif display_mode == 1:
-            current_volume = current_volume + 1
-            if current_volume > 19:
-                current_volume = 19
-            else:
-                image.paste(vol_list[current_volume], (0,0))  # use now playing image
-                # call volume api here (current_volume * 5)
-
-        disp.image(image)
-
-def wheel_left(channel):
+def wheel_left():
     #
     # Wheel turned left (<)
     #
-    #global counter, step, wav_pointer, ICON_FONT, image, draw, disp, current_volume
+ 
     global noise_pointer, current_volume
 
-    clkState = GPIO.input(18)
-    dtState = GPIO.input(17)
-
-    if clkState == 1 and dtState == 0:
-        print("Wheel turned left.")
-        if display_mode == 0:
-            noise_pointer = noise_pointer - 1
-            if noise_pointer < 0:
-                noise_pointer = len(img_list) - 1
-            image.paste(img_list[noise_pointer], (0,0))  # use now playing image
-            #print("Now playing: {0}, wav_list.index(now_playing): {1}".format(now_playing, wav_list.index(now_playing)))
-            draw.text((1, 110), "\U000F04D5", font=ICON_FONT, fill=(255, 255, 255),)  # draw the play icon
-        elif display_mode == 1:
-            current_volume = current_volume - 1
-            if current_volume < 0:
-                current_volume = 0
-            else:
-                image.paste(vol_list[current_volume], (0,0))  # use now playing image
-                # call volume api here (current_volume * 5)
-
-        disp.image(image)
+    if display_mode == 0:
+        noise_pointer = noise_pointer - 1
+        if noise_pointer < 0:
+            noise_pointer = len(img_list) - 1
+        image.paste(img_list[noise_pointer], (0,0))  # use now playing image
+        draw.text((1, 110), "\U000F04D5", font=ICON_FONT, fill=(255, 255, 255),)  # draw the left sel icon
+    elif display_mode == 1:
+        current_volume = current_volume - 1
+        if current_volume < 0:
+            current_volume = 0
+        else:
+            image.paste(vol_list[current_volume], (0,0))  # use now playing image
+    
+    disp.image(image)
 
 #
 #     %%%%%%%%%%%%  Initial program flow continues here %%%%%%
@@ -330,7 +395,7 @@ GPIO.add_event_detect(5, GPIO.RISING, callback=button_stop, bouncetime=DEBOUNCE)
 
 #display
 GPIO.setup(21, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-GPIO.add_event_detect(21, GPIO.RISING, callback=button_display, bouncetime=DEBOUNCE+100)
+GPIO.add_event_detect(21, GPIO.RISING, callback=button_display, bouncetime=DEBOUNCE+200)
 
 # preset 1
 GPIO.setup(6, GPIO.IN, pull_up_down=GPIO.PUD_UP)
@@ -348,31 +413,28 @@ GPIO.add_event_detect(19, GPIO.RISING, callback=button_preset, bouncetime=DEBOUN
 GPIO.setup(26, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 GPIO.add_event_detect(26, GPIO.RISING, callback=button_preset, bouncetime=DEBOUNCE)
 
-# rotary click
-GPIO.setup(20, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-GPIO.add_event_detect(20, GPIO.RISING, callback=button_rotary_click, bouncetime=DEBOUNCE)
-
-# Set rotary inputs
-GPIO.setup(18, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-GPIO.add_event_detect(18, GPIO.FALLING, callback=wheel_right, bouncetime=250)
-
+#rotaryio interrupt
 GPIO.setup(17, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-GPIO.add_event_detect(17, GPIO.FALLING, callback=wheel_left, bouncetime=250)
-
+GPIO.add_event_detect(17, GPIO.FALLING, callback=rotary_incoming)
 
 # set initial display states
 init_controller()
 
-# Get the initial rotary states
-# See https://blog.sharedove.com/adisjugo/index.php/2020/05/10/using-ky-040-rotary-encoder-on-raspberry-pi-to-control-volume/
-counter = 0
-clkLastState = GPIO.input(18)
-dtLastState = GPIO.input(17)
-swLastState = GPIO.input(20)
-step = 1
-
-
 while True:
-    print(display_mode)
-
+    loop_count = loop_count + 1
+    if loop_count == 5:
+        loop_count = 0
+        #  Check to see if some other process has changed the status
+        r = requests.get('http://noise:5000/')
+        j = r.json()
+        if j["status"] == "stop":
+            if now_playing != "":
+                now_playing = ""
+                display_now(idle_image)
+        else:
+            if now_playing != j["file"]:
+                now_playing = j["file"]
+                display_now(img_list[wav_list.index(now_playing)])
+    
     time.sleep(2)
+    
