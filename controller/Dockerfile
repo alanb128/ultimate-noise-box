@@ -1,4 +1,4 @@
-FROM balenalib/raspberrypi3-ubuntu-python:3.7-bionic-build
+FROM balenalib/raspberrypi3-ubuntu-python:3.7-bionic-build-20210826
 
 WORKDIR /usr/src/app
 
@@ -6,7 +6,7 @@ RUN \
     apt-get update && apt-get install -y ttf-dejavu libfreetype6-dev
 
 RUN \
-    pip3 install pillow RPi.GPIO adafruit-circuitpython-rgb-display \
+    pip3 install numpy pillow RPi.GPIO adafruit-circuitpython-rgb-display \
     requests redis adafruit-circuitpython-seesaw
 
 COPY *.py ./
