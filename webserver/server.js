@@ -12,6 +12,8 @@ app.set("views", __dirname + "/views");
 
 const redis = require('redis');
 const { promisify } = require('util');
+// redis pinned to v3 in package.json
+// See https://github.com/redis/node-redis/blob/HEAD/docs/v3-to-v4.md
 const client = redis.createClient({
     host: 'redis',
     port: 6379
@@ -23,6 +25,8 @@ client.on('error', err => {
 
 
 let media_path = env.MEDIA_PATH || "/data/my_data/noise/";
+let asset_path = env.ASSET_PATH || "/data/my_data/assets/";
+let file_count = 0;
 
 // Enable HTML template middleware
 app.engine('html', require('ejs').renderFile);
@@ -32,6 +36,7 @@ app.use(express.static('styles'));
 
 // Enable access to wav files
 app.use("/public", express.static(media_path));
+app.use("/assets", express.static(asset_path));
 
 // For processing forms
 app.use(express.urlencoded({ extended: true}))
@@ -43,30 +48,34 @@ app.get('/', function (req, res) {
   client.mget(['p1', 'p2', 'p3', 'p4'], (err, reply) => {
   getImages(media_path, function (err, files, hasimage) {
     var imageLists = '<table class="w3-table w3-striped w3-bordered" id="tblMain">';
-    for (var i=0; i<files.length; i++) {
-        imageLists += '<tr class="w3-theme"><td width="10%"><img src="/public/' + hasimage[i] + '"';
-        //if (hasimage[i] == 0) {
-        //  imageLists += 'default.jpg';
-        //} else {
-        //  imageLists += files[i] + '.jpg">';
-        //}
-        imageLists += '</td><td style="text-align: left;"><h2>  ' + files[i].replace('_', ' ') +  ' </h2><br />';
-        imageLists += '<a class="w3-button w3-circle w3-small w3-blue" onclick="playsound(\'' + files[i] + '\')"><i class="fas fa-play"></i></a>&nbsp;&nbsp;&nbsp;';
-        imageLists += '<a class="w3-button w3-circle w3-small w3-blue" onclick="preset(\'' + files[i] + '\', 1)">1</a>&nbsp;&nbsp;&nbsp;';
-        imageLists += '<a class="w3-button w3-circle w3-small w3-blue" onclick="preset(\'' + files[i] + '\', 2)">2</a>&nbsp;&nbsp;&nbsp;';
-        imageLists += '<a class="w3-button w3-circle w3-small w3-blue" onclick="preset(\'' + files[i] + '\', 3)">3</a>&nbsp;&nbsp;&nbsp;';
-        imageLists += '<a class="w3-button w3-circle w3-small w3-blue" onclick="preset(\'' + files[i] + '\', 4)">4</a> ';
-        imageLists += '</td></tr>';
-      }
+    if (file_count == 0) {
+      imageLists += '<tr class="w3-theme"><td width="10%">&nbsp;</td><td style="text-align: left;"><h2>No files!</h2></td></tr>';
+    } else {
+        for (var i=0; i<files.length; i++) {
+          imageLists += '<tr class="w3-theme"><td width="10%"><img src="' +  hasimage[i] + '"';
+          //if (hasimage[i] == 0) {
+          //  imageLists += 'default.jpg';
+          //} else {
+          //  imageLists += files[i] + '.jpg">';
+          //}
+          imageLists += '</td><td style="text-align: left;"><h2>  ' + files[i].replace('_', ' ') +  ' </h2><br />';
+          imageLists += '<a class="w3-button w3-circle w3-small w3-blue" onclick="playsound(\'' + files[i] + '\')"><i class="fas fa-play"></i></a>&nbsp;&nbsp;&nbsp;';
+          imageLists += '<a class="w3-button w3-circle w3-small w3-blue" onclick="preset(\'' + files[i] + '\', 1)">1</a>&nbsp;&nbsp;&nbsp;';
+          imageLists += '<a class="w3-button w3-circle w3-small w3-blue" onclick="preset(\'' + files[i] + '\', 2)">2</a>&nbsp;&nbsp;&nbsp;';
+          imageLists += '<a class="w3-button w3-circle w3-small w3-blue" onclick="preset(\'' + files[i] + '\', 3)">3</a>&nbsp;&nbsp;&nbsp;';
+          imageLists += '<a class="w3-button w3-circle w3-small w3-blue" onclick="preset(\'' + files[i] + '\', 4)">4</a> ';
+          imageLists += '</td></tr>';
+        }
+    }  // end if file_count
       imageLists += '</table>';
       //res.writeHead(200, {'Content-type':'text/html'});
       //res.end(imageLists);
       console.log("rendering")
       var presets = []
-      // TODO: handle null reply below...
+      // reply is a list with null value entry if no preset
       presets = reply
       console.log(presets)
-      res.render('index', { assets: imageLists, prlist: presets });
+      res.render('index', { assets: imageLists, prlist: presets, fileCount: file_count });
     });
     }); // client.get
 });
@@ -110,30 +119,26 @@ function getImages(imageDir, callback) {
   var fileType = '.wav', imageType = '.jpg',
     files = [], hasimage = [], i;
   fs.readdir(imageDir, function (err, list) {
-    for(i=0; i<list.length; i++) {
-      if(path.extname(list[i]) === fileType) {
-        img_name = path.basename(list[i], fileType)  // just the name, no extension
-        files.push(img_name); //store the name into the array files
-        img_path = imageDir + img_name + imageType;  // path + name + img ext
-        //console.log(img_path);
-        //fs.access(img_path, function (err) {
-        //  if (err) {
-        //    hasimage.push('default.' + imageType)
-        //    console.log("The file does not exist.");
-        //  } else {
-        //    hasimage.push(img_name + imageType);
-        //    console.log("The file exists.");
-        //  }
-        //});
-        if(fs.existsSync(img_path)) {
-          hasimage.push(img_name + imageType);
-          //console.log("The file exists.");
-        } else {
-          hasimage.push('default' + imageType)
-          //console.log('The file does not exist.');
-        }
-      }
-    }
+    if ( typeof list !== 'undefined' && list ) {
+      file_count = list.length
+      for(i=0; i<list.length; i++) {
+        if(path.extname(list[i]) === fileType) {
+          img_name = path.basename(list[i], fileType)  // just the name, no extension
+          files.push(img_name); //store the name into the array files
+          img_path = imageDir + img_name + imageType;  // path + name + img ext
+      
+          if(fs.existsSync(img_path)) {
+            hasimage.push('/public/' + img_name + imageType);
+            //console.log("The file exists.");
+          } else {
+            hasimage.push('/assets/default' + imageType)
+            //console.log('The file does not exist.');
+          }  // end if exists sync
+        }  // end if file type
+      }  // end for
+    }  else {  // undefined
+         file_count = 0;
+    }  // end if undefined
     //console.log(files, hasimage);
     callback(err, files, hasimage);
   });
@@ -172,4 +177,3 @@ function PostCode(filename) {
   post_req.end();
 
 }
-
