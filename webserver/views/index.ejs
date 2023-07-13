@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<title>Noise Box 64</title>
+<title>Ultimate Noise Box</title>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" type="text/css" href="w3.css">
@@ -91,7 +91,7 @@ function preset(filename, preset) {
 <!-- Navbar -->
 <div class="w3-top">
   <div class="w3-bar w3-red w3-card w3-left-align w3-large">
-    &nbsp;&nbsp;Noise Box 64
+    &nbsp;&nbsp;Ultimate Noise Box
   </div>
 </div>
 <!-- First Grid -->
@@ -100,10 +100,10 @@ function preset(filename, preset) {
     <br /> <br />
     
 
-    <h1>Welcome to your noise box</h1>
+    <h1>Welcome!</h1>
     <br />
 
-    <table class="w3-table w3-bordered" id="tblNow"><tr class="w3-theme"><td width="10%"><span id="pimg0"><img src="/public/default.jpg"></span></td><td style="text-align: left;"><h2>Now Playing:
+    <table class="w3-table w3-bordered" id="tblNow"><tr class="w3-theme"><td width="10%"><span id="pimg0"><img src="/assets/default.jpg"></span></td><td style="text-align: left;"><h2>Now Playing:
     <br /><span id="preset0">(nothing)</span></h2>
     <div class="slidecontainer">
       <a class="w3-button w3-circle w3-small w3-blue" onclick="stopsound()"><i class="fas fa-stop"></i></a> &nbsp;&nbsp;&nbsp;
@@ -113,24 +113,32 @@ function preset(filename, preset) {
 
     <br /><h3>Presets:</h3><br />
 
-    <table class="w3-table w3-striped w3-bordered" id="tblPre"><tr class="w3-theme"><td width="10%"><span id="pimg1"><img src="/public/<%= prlist[0]%>.jpg"></span></td>
-    <td style="text-align: left;"><h3>Preset 1: <span id="preset1"><%= prlist[0].replace('_', ' ')%> </span></h3>
-    <span id="pbtn1"><a id="preplay1" class="w3-button w3-circle w3-small w3-blue" onclick="playsound('<%= prlist[0]%>')"><i class="fas fa-play"></i></a></span></td></tr> 
-    
-    <tr class="w3-theme"><td width="10%"><span id="pimg2"><img src="/public/<%= prlist[1]%>.jpg"></span></td>
-    <td style="text-align: left;"><h3>Preset 2: <span id="preset2"><%= prlist[1].replace('_', ' ')%> </span></h3>
-    <span id="pbtn2"><a id="preplay2" class="w3-button w3-circle w3-small w3-blue" onclick="playsound('<%= prlist[1]%>')"><i class="fas fa-play"></i></a></span></td></tr>
+    <% if (prlist[0] != null) { %>
+        <table class="w3-table w3-striped w3-bordered" id="tblPre"><tr class="w3-theme"><td width="10%"><span id="pimg1"><img src="/public/<%= prlist[0]%>.jpg"></span></td>
+        <td style="text-align: left;"><h3>Preset 1: <span id="preset1"><%= prlist[0].replace('_', ' ')%> </span></h3>
+        <span id="pbtn1"><a id="preplay1" class="w3-button w3-circle w3-small w3-blue" onclick="playsound('<%= prlist[0]%>')"><i class="fas fa-play"></i></a></span></td></tr> 
+    <% } %>
 
-    <tr class="w3-theme"><td width="10%"><span id="pimg3"><img src="/public/<%= prlist[2]%>.jpg"></span></td>
-    <td style="text-align: left;"><h3>Preset 3: <span id="preset3"><%= prlist[2].replace('_', ' ')%> </span></h3>
-    <span id="pbtn3"><a id="preplay3" class="w3-button w3-circle w3-small w3-blue" onclick="playsound('<%= prlist[2]%>')"><i class="fas fa-play"></i></a></span></td></tr>
+    <% if (prlist[1] != null) { %>
+        <tr class="w3-theme"><td width="10%"><span id="pimg2"><img src="/public/<%= prlist[1]%>.jpg"></span></td>
+        <td style="text-align: left;"><h3>Preset 2: <span id="preset2"><%= prlist[1].replace('_', ' ')%> </span></h3>
+        <span id="pbtn2"><a id="preplay2" class="w3-button w3-circle w3-small w3-blue" onclick="playsound('<%= prlist[1]%>')"><i class="fas fa-play"></i></a></span></td></tr>
+    <% } %>
 
-    <tr class="w3-theme"><td width="10%"><span id="pimg4"><img src="/public/<%= prlist[3]%>.jpg"></span></td>
-    <td style="text-align: left;"><h3>Preset 4: <span id="preset4"><%= prlist[3].replace('_', ' ')%> </span></h3>
-    <span id="pbtn4"><a id="preplay4" class="w3-button w3-circle w3-small w3-blue" onclick="playsound('<%= prlist[3]%>')"><i class="fas fa-play"></i></a></span></td></tr>
-    </td></tr></table>
+    <% if (prlist[2] != null) { %>
+        <tr class="w3-theme"><td width="10%"><span id="pimg3"><img src="/public/<%= prlist[2]%>.jpg"></span></td>
+        <td style="text-align: left;"><h3>Preset 3: <span id="preset3"><%= prlist[2].replace('_', ' ')%> </span></h3>
+        <span id="pbtn3"><a id="preplay3" class="w3-button w3-circle w3-small w3-blue" onclick="playsound('<%= prlist[2]%>')"><i class="fas fa-play"></i></a></span></td></tr>
+    <% } %>
+
+    <% if (prlist[3] != null) { %>
+        <tr class="w3-theme"><td width="10%"><span id="pimg4"><img src="/public/<%= prlist[3]%>.jpg"></span></td>
+        <td style="text-align: left;"><h3>Preset 4: <span id="preset4"><%= prlist[3].replace('_', ' ')%> </span></h3>
+        <span id="pbtn4"><a id="preplay4" class="w3-button w3-circle w3-small w3-blue" onclick="playsound('<%= prlist[3]%>')"><i class="fas fa-play"></i></a></span></td></tr>
+        </td></tr></table>
+    <% } %>
     <br />
-    <h3>Library:</h3>
+    <h3>You have <%= fileCount%> noises in your library:</h3>
     <br />
     <%- assets %>
   </div>
