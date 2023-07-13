@@ -7,5 +7,6 @@ RUN pip3 install flask Flask-API
 WORKDIR /usr/src/app
 
 COPY *.py ./
+COPY *.sh ./
 
-CMD [ "python3", "noise.py" ]
+CMD [ "bash", "start.sh" ]
