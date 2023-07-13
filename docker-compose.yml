@@ -5,7 +5,7 @@ volumes:
     web-data:
 services:
   audio:
-    image: balenablocks/audio
+    image: bh.cr/balenalabs/audio-armv7hf
     privileged: true
     ports:
       - 4317:4317
