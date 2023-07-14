@@ -138,7 +138,14 @@ function preset(filename, preset) {
         </td></tr></table>
     <% } %>
     <br />
-    <h3>You have <%= fileCount%> noises in your library:</h3>
+    <h3>You have <%= fileCount%> 
+    
+    <% if (fileCount == 1) { %>
+        noise 
+    <% } else { %>
+        noises 
+    <% } %>    
+    in your library:</h3>
     <br />
     <%- assets %>
   </div>

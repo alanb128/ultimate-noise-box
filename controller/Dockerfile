@@ -20,5 +20,7 @@ RUN \
 
 COPY *.py ./
 COPY *.ttf ./
+COPY *.sh ./
+COPY ./assets ./assets
 
-CMD [ "python3", "controller.py" ]
+CMD [ "bash", "start.sh" ]

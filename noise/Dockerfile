@@ -12,5 +12,7 @@ WORKDIR /usr/src/app
 
 COPY *.py ./
 COPY *.sh ./
+COPY *.wav ./
+
 
 CMD [ "bash", "start.sh" ]

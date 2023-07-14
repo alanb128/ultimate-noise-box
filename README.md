@@ -1,19 +1,93 @@
 # ultimate-noise-box
-Turn a Raspberry Pi 3 into the ultimate noise and relaxation machine.
-
-This is still a work in progress! You can learn more in the ongoing [build log](https://forums.balena.io/t/the-ultimate-diy-noise-machine/344407)
+Turn a Raspberry Pi into the ultimate relaxation machine that plays soothing wav files.
 
 ## Overview
-Here are the features of the noise machine:
+Here are the features of the Ultimate Noise Machine:
 - Produces CD-quality stereophonic audio.
-- Usees real audio samples with gapless undetectable looping
-- A high quality built-in amplifier and speaker system and/or line level audio output
+- Uses real audio samples with gapless undetectable looping
+- Line level audio output jack to use with high quality powered speakers
 - Intuitive control panel with rotary wheel and LCD screen
-- Web-based control with a responsive UI for any client
+- Web-based control too with a responsive UI
 
-![initial plan](https://raw.githubusercontent.com/alanb128/ultimate-noise-box/main/initial_plan-50.jpeg)
+This is the full-size unit based on a Raspberry Pi 3 with custom 3D-printed faceplate:
 
-## Containers
+![Large version](https://raw.githubusercontent.com/alanb128/ultimate-noise-box/main/images/large-box.jpg)
+
+The smaller version uses smaller buttons and a Raspberry Pi Zero 2W:
+
+![Small version](https://raw.githubusercontent.com/alanb128/ultimate-noise-box/main/images/small-outside.jpg)
+
+## Building it
+
+### Parts list
+
+- Raspberry Pi 3, 4, or Zero 2W
+- [Adafruit I2S Audio Bonnet](https://www.adafruit.com/product/4037)
+- Momentary SPST pushbutton such as [this one](https://www.adafruit.com/product/1504)
+- 1.44 inch TFT [LCD screen](https://www.adafruit.com/product/2088)
+- [Rotary encoder](https://www.adafruit.com/product/377) (why not get a nice [knob](https://www.adafruit.com/product/2055) too?)
+- [I2C Rotary Encoder Breakout](https://www.adafruit.com/product/4991)
+
+### Assembly
+
+Attach the audio bonnet to the Pi. Wire the switches into the audio bonnet following the schematic below. You can solder directly into the pads on the bonnet, which show the GPIO number.
+
+![Schematic](https://raw.githubusercontent.com/alanb128/ultimate-noise-box/main/images/schematic.png)
+
+Wire the LCD into the bonnet using the diagram for the 1.44" display found [here](https://learn.adafruit.com/adafruit-1-44-color-tft-with-micro-sd-socket/python-wiring-and-setup#st7789-and-st7735-based-displays-3042525).
+
+
+Solder the rotary encoder to the encoder board as detailed [here](https://learn.adafruit.com/adafruit-i2c-qt-rotary-encoder/overview). Finally, wire the rotary encoder board into the bonnet. You could use the Qwiic connector on one end, but either way the INT terminal on the rotary board will need to be wired in to GPIO 17.
+
+
+![Inside wiring](https://raw.githubusercontent.com/alanb128/ultimate-noise-box/main/images/small-inside.jpg)
+
+### Case
+
+Use your favorite project case, and to enhance the project, print your own faceplate to mount the controls. You can find STL files in this repo for the 3D faceplates used in the pictures above. Unfortunately [the cases](https://www.radioshack.com/products/radioshack-project-enclosure-6x4x2) used for them no longer appear available from Radio Shack online.
+
+## Software
+
+This project uses the [balena platform](https://www.balena.io/) for ease of deployment, device management and as the best way to run containers on the Pi. Sign up for a free account - the first 10 devices are free and fully featured. After assembling your hardware and creating a balena account, simply click the button below to generate a microSD card image to burn and insert in your Pi:
+
+[![balena deploy button](https://www.balena.io/deploy.svg)](https://dashboard.balena-cloud.com/deploy?repoUrl=https://github.com/alanb128/ultimate-noise-box)
+
+After you create a fleet, add a new device. Choose the type of Pi you'll be using and you can also add your WiFi credentials at this point. You'll be able to download the SD card image after you add the device. You can use [balenaEtcher](https://etcher.balena.io/) to burn your SD card image. After powering on your Pi, it should start downloading the software.
+
+After the software has downloaded, you'll need to go into the device configuration in balenaCloud and add the following configuration variable:
+
+`BALENA_HOST_CONFIG_dtoverlay`
+
+With the value:
+
+`"hifiberry-dac","i2s-mmap"`
+
+If you want to make your own changes to the software, clone this repo and use the [balena CLI](https://github.com/balena-io/balena-cli) to push the modified code to your device.
+
+
+## Setup and use
+
+The unit comes with one pre-recorded sound: a very relaxing dishwasher. To add more sounds, browse to the device's IP address (you can find it on the dashboard) on port 9000. (i.e. 192.168.1.100:9000 - but use your IP) The initial login for the Minio browser is `myminio`/`myminio123` here you can drag and drop additional sound files. They must be of the following type: uncompressed PCM format wav files. The sound file should be optimized for looping playback. If you would like an accompanying image for each sound file, give it the same name but with a .jpg file extension. Images should be 128x128 pixels. After uploading additional files, you should reboot the device from the balenaCloud dashboard.
+
+You can scroll through the available sounds by rotating the wheel. Push the wheel to play the selected sound. The stop button stops playback of the current sound.
+
+The display button cycles through the volume display and the device info display. You can adjust the volume level with the wheel when the volume bar is displayed, however controlling the actual volume is currently not implemented.
+
+The four preset buttons instantly start playing the preset sound. To store a preset, open the web interface to the device by browsing its IP address (port 80).
+
+![Web page](https://raw.githubusercontent.com/alanb128/ultimate-noise-box/main/images/browser-2.png)
+
+Next to each sound you'll see buttons labeled 1 - 4. Click the button number next to a sound to assign it to that preset number.
+
+
+## How it works
+
+The application is made up of multiple [containers](https://docs.docker.com/get-started/what-is-a-container/) that communicate with each other through APIs and also share a storage volume. This project is a great example of how containers can work together and cleanly separate functionality. Also note how we add entire functionality by pulling images made by the various software authors. 
+
+![Block diagram](https://raw.githubusercontent.com/alanb128/ultimate-noise-box/main/images/block-diagram.jpg)
+
+Here is a summary of the function of each container:
+
 
 ### Noise
 This is the Python program that plays back the audio files through the audio block. It uses Pygame to achieve gapless looping playback. The audio files must be in uncompressed PCM wav file format. It exposes an API (using FlaskAPI) 
@@ -35,8 +109,7 @@ S3 compatible object storage. This provides a web interface for uploading new au
 ### Audio
 This is our beloved [audio block](https://github.com/balenablocks/audio) that runs a PulseAudio server optimized for balenaOS and is the core of [balenaSound](https://sound.balenalabs.io/). We use it here to take care of setting up and routing all audio needs on the Pi hardware, so the noise container just sends its audio here.
 
-### Controller (coming soon)
+### Controller
 A custom Python program that responds to button presses on the control panel, reads the rotary dial position and drives the LCD display.
 
-## How to use
-(coming soon)
+

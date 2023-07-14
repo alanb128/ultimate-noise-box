@@ -1,0 +1,15 @@
+name: "Ultimate Noise Box"
+description: "Create a relaxing noise and gapless looping sound player."
+type: "sw.application"
+assets:
+  repository:
+    type: "blob.asset"
+    data:
+      url: "https://github.com/alanb128/ultimate-noise-box"
+data:
+  defaultDeviceType: "raspberrypi3-64"
+  supportedDeviceTypes:
+    - "raspberrypi4-64"
+    - "raspberrypi0-2w-64"
+    - "raspberrypi400-64"
+    - "raspberrypicm4-ioboard"
