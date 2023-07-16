@@ -21,6 +21,8 @@ The smaller version uses smaller buttons and a Raspberry Pi Zero 2W:
 
 ### Parts list
 
+At a minimum, you need a Pi and the audio bonnet specified below. If you don't use the buttons, rotary encoder, or display, you can control the Noise Box from its built-in web page by browsing to its IP address.
+
 - Raspberry Pi 3, 4, or Zero 2W
 - [Adafruit I2S Audio Bonnet](https://www.adafruit.com/product/4037)
 - Momentary SPST pushbutton such as [this one](https://www.adafruit.com/product/1504)
@@ -28,9 +30,10 @@ The smaller version uses smaller buttons and a Raspberry Pi Zero 2W:
 - [Rotary encoder](https://www.adafruit.com/product/377) (why not get a nice [knob](https://www.adafruit.com/product/2055) too?)
 - [I2C Rotary Encoder Breakout](https://www.adafruit.com/product/4991)
 
+
 ### Assembly
 
-Attach the audio bonnet to the Pi. Wire the switches into the audio bonnet following the schematic below. You can solder directly into the pads on the bonnet, which show the GPIO number.
+Wire the switches into the audio bonnet following the schematic below. You can solder directly into the pads on the bonnet, which show the GPIO number.
 
 ![Schematic](https://raw.githubusercontent.com/alanb128/ultimate-noise-box/main/images/schematic.png)
 
@@ -41,6 +44,8 @@ Solder the rotary encoder to the encoder board as detailed [here](https://learn.
 
 
 ![Inside wiring](https://raw.githubusercontent.com/alanb128/ultimate-noise-box/main/images/small-inside.jpg)
+
+Attach the audio bonnet to the Pi.
 
 ### Case
 
@@ -67,7 +72,7 @@ If you want to make your own changes to the software, clone this repo and use th
 
 ## Setup and use
 
-The unit comes with one pre-recorded sound: a very relaxing dishwasher. To add more sounds, browse to the device's IP address (you can find it on the dashboard) on port 9000. (i.e. 192.168.1.100:9000 - but use your IP) The initial login for the Minio browser is `myminio`/`myminio123` here you can drag and drop additional sound files. They must be of the following type: uncompressed PCM format wav files. The sound file should be optimized for looping playback. If you would like an accompanying image for each sound file, give it the same name but with a .jpg file extension. Images should be 128x128 pixels. After uploading additional files, you should reboot the device from the balenaCloud dashboard.
+The unit comes with nine pre-recorded relaxation sounds. To add more sounds, browse to the device's IP address (you can find it on the dashboard) on port 9000. (i.e. 192.168.1.100:9000 - but use your IP) The initial login for the Minio browser is `myminio`/`myminio123` here you can drag and drop additional sound files. They must be of the following type: uncompressed PCM format wav files. The sound file should be optimized for looping playback. If you would like an accompanying image for each sound file, give it the same name but with a .jpg file extension. Images should be 128x128 pixels. After uploading additional files, you should reboot the device from the balenaCloud dashboard.
 
 You can scroll through the available sounds by rotating the wheel. Push the wheel to play the selected sound. The stop button stops playback of the current sound.
 
@@ -112,4 +117,28 @@ This is our beloved [audio block](https://github.com/balenablocks/audio) that ru
 ### Controller
 A custom Python program that responds to button presses on the control panel, reads the rotary dial position and drives the LCD display.
 
+
+## Credits
+
+Some of the included sounds and their accompanying images were derived from the following royalty-free image and sound libraries:
+
+Waterfall sound by <a href="https://pixabay.com/users/nickype-10327513/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=121190">NickyPe</a> from <a href="https://pixabay.com//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=121190">Pixabay</a>
+
+Splash sound by <a href="https://pixabay.com/users/juliush-3921568/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=8004">JuliusH</a> from <a href="https://pixabay.com/sound-effects//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=8004">Pixabay</a>
+
+Rain sound by <a href="https://pixabay.com/users/sergei_spas-9611130/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=153416">sergei_spas</a> from <a href="https://pixabay.com/sound-effects//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=153416">Pixabay</a>
+
+Brown image extracted from photo by <a href="https://unsplash.com/@pawel_czerwinski?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Pawel Czerwinski</a> on <a href="https://unsplash.com/backgrounds/colors/brown?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a>
+
+Pink noise image extracted from photo by <a href="https://unsplash.com/@joelfilip?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Joel Filipe</a> on <a href="https://unsplash.com/photos/Mbf3xFiC1Zo?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a>
+
+Underwater image extracted from photo by <a href="https://unsplash.com/@hisarahlee?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Sarah Lee</a> on <a href="https://unsplash.com/photos/QURU8IY-RaI?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a>
+
+Jet cabin image extracted from photo by <a href="https://unsplash.com/@alschim?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Alexander Schimmeck</a> on <a href="https://unsplash.com/photos/DSOohFTAfno?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a>
+
+Rain image extracted from photo by <a href="https://unsplash.com/@janfillem?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Jan-Willem</a> on <a href="https://unsplash.com/photos/FobwhDUgdrk?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a>
+  
+Splash image extracted from photo by <a href="https://unsplash.com/@amadejtauses?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Amadej Tauses</a> on <a href="https://unsplash.com/photos/xWOTojs1eg4?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a>
+
+Waterfall photo by <a href="https://unsplash.com/@nathananderson?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Nathan Anderson</a> on <a href="https://unsplash.com/wallpapers/nature/waterfall?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a>
 

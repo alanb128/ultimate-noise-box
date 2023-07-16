@@ -16,12 +16,16 @@ import redis
 import os
 from adafruit_seesaw import seesaw, rotaryio
 
+USE_ROTARY = True
+USE_DISPLAY = True
+
 # Adafruit I2C QT Rotary Encoder
 # Using the INT output on Pi GPIO 17
 try:
     seesaw = seesaw.Seesaw(board.I2C(), addr=0x36)
 except:
     print("Error initializing the rotary encoder board.")
+    USE_ROTARY = False
 else:
     seesaw_product = (seesaw.get_version() >> 16) & 0xFFFF
     print("Found seesaw supported product {}".format(seesaw_product))
@@ -43,32 +47,38 @@ BAUDRATE = 24000000
 # Setup SPI bus using hardware SPI:
 spi = board.SPI()
 
-# pylint: disable=line-too-long
-# Create the display:
-# disp = st7789.ST7789(spi, rotation=90,                            # 2.0" ST7789
-# disp = st7789.ST7789(spi, height=240, y_offset=80, rotation=180,  # 1.3", 1.54" ST7789
-# disp = st7789.ST7789(spi, rotation=90, width=135, height=240, x_offset=53, y_offset=40, # 1.14" ST7789
-# disp = hx8357.HX8357(spi, rotation=180,                           # 3.5" HX8357
-# disp = st7735.ST7735R(spi, rotation=90,                           # 1.8" ST7735R
-disp = st7735.ST7735R(spi, rotation=270, height=128, x_offset=2, y_offset=3,   # 1.44" ST7735R
-# disp = st7735.ST7735R(spi, rotation=90, bgr=True,                 # 0.96" MiniTFT ST7735R
-# disp = ssd1351.SSD1351(spi, rotation=180,                         # 1.5" SSD1351
-# disp = ssd1351.SSD1351(spi, height=96, y_offset=32, rotation=180, # 1.27" SSD1351
-# disp = ssd1331.SSD1331(spi, rotation=180,                         # 0.96" SSD1331
-    cs=cs_pin,
-    dc=dc_pin,
-    rst=reset_pin,
-    baudrate=BAUDRATE,
-)
+try:
+    # pylint: disable=line-too-long
+    # Create the display:
+    # disp = st7789.ST7789(spi, rotation=90,                            # 2.0" ST7789
+    # disp = st7789.ST7789(spi, height=240, y_offset=80, rotation=180,  # 1.3", 1.54" ST7789
+    # disp = st7789.ST7789(spi, rotation=90, width=135, height=240, x_offset=53, y_offset=40, # 1.14" ST7789
+    # disp = hx8357.HX8357(spi, rotation=180,                           # 3.5" HX8357
+    # disp = st7735.ST7735R(spi, rotation=90,                           # 1.8" ST7735R
+    disp = st7735.ST7735R(spi, rotation=270, height=128, x_offset=2, y_offset=3,   # 1.44" ST7735R
+    # disp = st7735.ST7735R(spi, rotation=90, bgr=True,                 # 0.96" MiniTFT ST7735R
+    # disp = ssd1351.SSD1351(spi, rotation=180,                         # 1.5" SSD1351
+    # disp = ssd1351.SSD1351(spi, height=96, y_offset=32, rotation=180, # 1.27" SSD1351
+    # disp = ssd1331.SSD1331(spi, rotation=180,                         # 0.96" SSD1331
+        cs=cs_pin,
+        dc=dc_pin,
+        rst=reset_pin,
+        baudrate=BAUDRATE,
+    )
+except:
+    print("No display or error setting up display.")
+    disp = False
+    USE_DISPLAY = False
 
-# Create blank image for drawing.
-# Make sure to create image with mode 'RGB' for full color.
-if disp.rotation % 180 == 90:
-    height = disp.width  # we swap height/width to rotate it to landscape!
-    width = disp.height
-else:
-    width = disp.width  # we swap height/width to rotate it to landscape!
-    height = disp.height
+if USE_DISPLAY:
+    # Create blank image for drawing.
+    # Make sure to create image with mode 'RGB' for full color.
+    if disp.rotation % 180 == 90:
+        height = disp.width  # we swap height/width to rotate it to landscape!
+        width = disp.height
+    else:
+        width = disp.width  # we swap height/width to rotate it to landscape!
+        height = disp.height
 
 # Main RGB image
 image = Image.new("RGB", (width, height))
@@ -198,7 +208,8 @@ def init_controller():
         text = "Welcome!"
         draw.text((3, 10), text, font=font, fill=(255, 255, 0),)
     else:
-        disp.image(image)
+        if USE_DISPLAY:
+            disp.image(image)
     time.sleep(1)
     lib_setup()
     time.sleep(1)
@@ -289,9 +300,11 @@ def button_display(channel):
             display_now(img_list[wav_list.index(now_playing)])
     elif display_mode == 1:
         image.paste(vol_list[current_volume], (0,0))
-        disp.image(image)
+        if USE_DISPLAY:
+            disp.image(image)
     elif display_mode == 2:
-        disp.image(img_about)
+        if USE_DISPLAY:
+            disp.image(img_about)
 
 def button_preset(channel):
     #
@@ -351,7 +364,8 @@ def display_now(d_img, extra_icon=""):
     if len(extra_icon) > 0:   # draw the extra icon
         d_img_draw.text((105, 5), extra_icon, font=ICON_FONT, fill=(255, 255, 255),)
 
-    disp.image(d_img)
+    if USE_DISPLAY:
+        disp.image(d_img)
 
 def rotary_incoming(r):
     #
@@ -406,7 +420,8 @@ def wheel_right():
         else:
             image.paste(vol_list[current_volume], (0,0))
     
-    disp.image(image)
+    if USE_DISPLAY:
+        disp.image(image)
 
 def wheel_left():
     #
@@ -428,8 +443,8 @@ def wheel_left():
             current_volume = 0
         else:
             image.paste(vol_list[current_volume], (0,0))
-    
-    disp.image(image)
+    if USE_DISPLAY:
+        disp.image(image)
 
 #
 #     %%%%%%%%%%%%  Initial program flow continues here %%%%%%

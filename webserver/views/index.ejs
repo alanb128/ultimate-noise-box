@@ -69,7 +69,7 @@ function stopsound() {
   request.open("POST", "stop", true);
   request.send();
   document.getElementById("preset0").textContent="(nothing)";
-  document.getElementById("pimg0").innerHTML="<img src='/public/default.jpg'>";
+  document.getElementById("pimg0").innerHTML="<img src='/assets/default.jpg'>";
 }
 
 function preset(filename, preset) {
