@@ -262,16 +262,12 @@ def display_info():
     # Use supervisor API to get info
     r = requests.get(os.getenv('BALENA_SUPERVISOR_ADDRESS') + "/v1/device?apikey=" + os.getenv('BALENA_SUPERVISOR_API_KEY'))
     j = r.json()
-    #print(j["ip_address"])
-    #print(j["status"])
-    r = requests.get(os.getenv('BALENA_SUPERVISOR_ADDRESS') + "/v2/device/name?apikey=" + os.getenv('BALENA_SUPERVISOR_API_KEY'))
-    k = r.json()
     draw_about.text((1, 7), "IP:", font=font2, fill=(255, 165, 0),)
-    draw_about.text((1, 41), "UUID:", font=font2, fill=(255, 165, 0),)
-    draw_about.text((1, 75), "NAME:", font=font2, fill=(255, 165, 0),)
+    draw_about.text((1, 41), "balenaOS:", font=font2, fill=(255, 165, 0),)
+    draw_about.text((1, 75), "REL:", font=font2, fill=(255, 165, 0),)
     draw_about.text((1, 23), j["ip_address"], font=font2, fill=(255, 255, 255),)
-    draw_about.text((1, 57), os.getenv('BALENA_DEVICE_UUID')[:7], font=font2, fill=(255, 255, 255),)
-    draw_about.text((1, 91), k["deviceName"], font=font2, fill=(255, 255, 255),)
+    draw_about.text((1, 57), j["os_version"][9:], font=font2, fill=(255, 255, 255),)
+    draw_about.text((1, 91), j["commit"][:7], font=font2, fill=(255, 255, 255),)
 
 def button_stop(channel):
     #

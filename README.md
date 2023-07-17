@@ -21,7 +21,7 @@ The smaller version uses smaller buttons and a Raspberry Pi Zero 2W:
 
 ### Parts list
 
-At a minimum, you need a Pi and the audio bonnet specified below. If you don't use the buttons, rotary encoder, or display, you can control the Noise Box from its built-in web page by browsing to its IP address.
+At a minimum, you need a Pi and the audio bonnet specified below. If you don't use the buttons, rotary encoder, or display, you can control the Noise Box from its built-in web page by browsing to the device's IP address or enabling the Public URL feature.
 
 - Raspberry Pi 3, 4, or Zero 2W
 - [Adafruit I2S Audio Bonnet](https://www.adafruit.com/product/4037)
@@ -103,7 +103,7 @@ This is the Python program that plays back the audio files through the audio blo
 Note `<noisename>` and returned file are the name of the noise, with no path or extension, and underscore (_) instead of spaces.
 
 ### Webserver
-This is a Node/Express webserver that generates a single page for stopping or starting a noise from the library or presets. It is alos currently the only place you can assign presets to noises. The four presets mirror the four physical buttons on the hardware control panel. This application uses XMLHttpRequest to communicate with the backend for stopping, starting and assigning presets. It is set to run on port 80 by default and will be displayed if you enable the device's [public URL](https://www.balena.io/docs/learn/develop/runtime/#public-device-urls).
+This is a Node/Express webserver that generates a single page for stopping or starting a noise from the library or presets. It is also currently the only place you can assign presets to noises. The four presets mirror the four physical buttons on the hardware control panel. This application uses XMLHttpRequest to communicate with the backend for stopping, starting and assigning presets. It is set to run on port 80 by default and can be made available outside your network if you enable the device's [public URL](https://www.balena.io/docs/learn/develop/runtime/#public-device-urls).
 
 ### [Redis](https://redis.io/)
 An in-memory data structure store. It can periodically write to the local storage as well. This is used to store and retreive the values of the preset buttons, last volume level and most recently played file.
@@ -112,7 +112,7 @@ An in-memory data structure store. It can periodically write to the local storag
 S3 compatible object storage. This provides a web interface for uploading new audio files and their associated jpegs to the device. To access the interface, browse to the local URL using port 9000. To change the username and password, set new values in the `docker-compose.yml` file before first use! (You'll need to clone this repo and push using the CLI in order to do this.)
 
 ### Audio
-This is our beloved [audio block](https://github.com/balenablocks/audio) that runs a PulseAudio server optimized for balenaOS and is the core of [balenaSound](https://sound.balenalabs.io/). We use it here to take care of setting up and routing all audio needs on the Pi hardware, so the noise container just sends its audio here.
+This is the versatile balena [audio block](https://github.com/balenablocks/audio) that runs a PulseAudio server optimized for balenaOS and is the core of [balenaSound](https://sound.balenalabs.io/). We use it here to take care of setting up and routing all audio needs on the Pi hardware, so the noise container just sends its audio here.
 
 ### Controller
 A custom Python program that responds to button presses on the control panel, reads the rotary dial position and drives the LCD display.
@@ -133,8 +133,6 @@ Brown image extracted from photo by <a href="https://unsplash.com/@pawel_czerwin
 Pink noise image extracted from photo by <a href="https://unsplash.com/@joelfilip?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Joel Filipe</a> on <a href="https://unsplash.com/photos/Mbf3xFiC1Zo?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a>
 
 Underwater image extracted from photo by <a href="https://unsplash.com/@hisarahlee?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Sarah Lee</a> on <a href="https://unsplash.com/photos/QURU8IY-RaI?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a>
-
-Jet cabin image extracted from photo by <a href="https://unsplash.com/@alschim?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Alexander Schimmeck</a> on <a href="https://unsplash.com/photos/DSOohFTAfno?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a>
 
 Rain image extracted from photo by <a href="https://unsplash.com/@janfillem?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Jan-Willem</a> on <a href="https://unsplash.com/photos/FobwhDUgdrk?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a>
   
