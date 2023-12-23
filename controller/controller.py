@@ -260,15 +260,19 @@ def display_info():
     # Prep screen to cover "Reading..."
     draw_about.rectangle((0, 0, width, 107), fill=(0, 0, 72))  # draw blue bkgd
     # Use supervisor API to get info
-    r = requests.get(os.getenv('BALENA_SUPERVISOR_ADDRESS') + "/v1/device?apikey=" + os.getenv('BALENA_SUPERVISOR_API_KEY'))
-    j = r.json()
-    draw_about.text((1, 7), "IP:", font=font2, fill=(255, 165, 0),)
-    draw_about.text((1, 41), "balenaOS:", font=font2, fill=(255, 165, 0),)
-    draw_about.text((1, 75), "REL:", font=font2, fill=(255, 165, 0),)
-    draw_about.text((1, 23), j["ip_address"], font=font2, fill=(255, 255, 255),)
-    draw_about.text((1, 57), j["os_version"][9:], font=font2, fill=(255, 255, 255),)
-    draw_about.text((1, 91), j["commit"][:7], font=font2, fill=(255, 255, 255),)
-
+    try:
+        r = requests.get(os.getenv('BALENA_SUPERVISOR_ADDRESS') + "/v1/device?apikey=" + os.getenv('BALENA_SUPERVISOR_API_KEY'))
+    except:
+        draw_about.text((1, 7), "(info unavailable)", font=font2, fill=(255, 165, 0),)
+    else:
+        j = r.json()
+        draw_about.text((1, 7), "IP:", font=font2, fill=(255, 165, 0),)
+        draw_about.text((1, 41), "balenaOS:", font=font2, fill=(255, 165, 0),)
+        draw_about.text((1, 75), "REL:", font=font2, fill=(255, 165, 0),)
+        draw_about.text((1, 23), j["ip_address"], font=font2, fill=(255, 255, 255),)
+        draw_about.text((1, 57), j["os_version"][9:], font=font2, fill=(255, 255, 255),)
+        draw_about.text((1, 91), j["commit"][:7], font=font2, fill=(255, 255, 255),)
+        
 def button_stop(channel):
     #
     # stop payback
