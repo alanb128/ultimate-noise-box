@@ -120,9 +120,9 @@ function getImages(imageDir, callback) {
     files = [], hasimage = [], i;
   fs.readdir(imageDir, function (err, list) {
     if ( typeof list !== 'undefined' && list ) {
-      file_count = list.length
       for(i=0; i<list.length; i++) {
         if(path.extname(list[i]) === fileType) {
+          file_count++;
           img_name = path.basename(list[i], fileType)  // just the name, no extension
           files.push(img_name); //store the name into the array files
           img_path = imageDir + img_name + imageType;  // path + name + img ext

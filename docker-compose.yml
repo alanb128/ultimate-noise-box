@@ -5,6 +5,7 @@ volumes:
     web-data:
 services:
   audio:
+    restart: always
     image: bh.cr/balenalabs/audio-armv7hf
     privileged: true
     ports:
@@ -20,6 +21,7 @@ services:
     environment:
       PULSE_SERVER: tcp:audio:4317
   minio:
+    restart: always
     image: minio/minio:RELEASE.2021-06-17T00-10-46Z
     volumes:
       - 'shared-data:/data1'
@@ -31,6 +33,7 @@ services:
       MINIO_REGION_NAME: myregion
     command: minio server /data1
   redis:
+    restart: always
     image: redis:6.2.4-alpine
     command: ["redis-server", "--appendonly", "yes"]
     volumes:

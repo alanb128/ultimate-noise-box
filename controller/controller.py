@@ -1,12 +1,19 @@
 import digitalio 
 import board 
 from PIL import Image, ImageDraw, ImageFont 
-import adafruit_rgb_display.ili9341 as ili9341 
-import adafruit_rgb_display.st7789 as st7789 # pylint: disable=unused-import 
-import adafruit_rgb_display.hx8357 as hx8357 # pylint: disable=unused-import 
-import adafruit_rgb_display.st7735 as st7735 # pylint: disable=unused-import 
-import adafruit_rgb_display.ssd1351 as ssd1351 # pylint: disable=unused-import 
-import adafruit_rgb_display.ssd1331 as ssd1331 # pylint: disable=unused-import
+try:
+    import adafruit_rgb_display.ili9341 as ili9341 
+    import adafruit_rgb_display.st7789 as st7789 # pylint: disable=unused-import 
+    import adafruit_rgb_display.hx8357 as hx8357 # pylint: disable=unused-import 
+    import adafruit_rgb_display.st7735 as st7735 # pylint: disable=unused-import 
+    import adafruit_rgb_display.ssd1351 as ssd1351 # pylint: disable=unused-import 
+    import adafruit_rgb_display.ssd1331 as ssd1331 # pylint: disable=unused-import
+except:
+    print("No display found, going headless!")
+    USE_DISPLAY = False
+else:
+    USE_DISPLAY = True
+
 import time 
 import subprocess 
 import datetime 
@@ -14,10 +21,13 @@ import RPi.GPIO as GPIO
 import requests
 import redis 
 import os
-from adafruit_seesaw import seesaw, rotaryio
-
-USE_ROTARY = True
-USE_DISPLAY = True
+try:
+    from adafruit_seesaw import seesaw, rotaryio
+except:
+    print("No rotary encoder found, disabling rotary control!")
+    USE_ROTARY = False
+else:
+    USE_ROTARY = True
 
 # Adafruit I2C QT Rotary Encoder
 # Using the INT output on Pi GPIO 17
@@ -54,8 +64,8 @@ try:
     # disp = st7789.ST7789(spi, height=240, y_offset=80, rotation=180,  # 1.3", 1.54" ST7789
     # disp = st7789.ST7789(spi, rotation=90, width=135, height=240, x_offset=53, y_offset=40, # 1.14" ST7789
     # disp = hx8357.HX8357(spi, rotation=180,                           # 3.5" HX8357
-    # disp = st7735.ST7735R(spi, rotation=90,                           # 1.8" ST7735R
-    disp = st7735.ST7735R(spi, rotation=270, height=128, x_offset=2, y_offset=3,   # 1.44" ST7735R
+    disp = st7735.ST7735R(spi, rotation=90,                           # 1.8" ST7735R
+    #disp = st7735.ST7735R(spi, rotation=270, height=128, x_offset=2, y_offset=3,   # 1.44" ST7735R
     # disp = st7735.ST7735R(spi, rotation=90, bgr=True,                 # 0.96" MiniTFT ST7735R
     # disp = ssd1351.SSD1351(spi, rotation=180,                         # 1.5" SSD1351
     # disp = ssd1351.SSD1351(spi, height=96, y_offset=32, rotation=180, # 1.27" SSD1351
@@ -79,6 +89,10 @@ if USE_DISPLAY:
     else:
         width = disp.width  # we swap height/width to rotate it to landscape!
         height = disp.height
+else:
+    # set a default h, w even if no display so image routines don't error out
+    width = 128
+    height = 128
 
 # Main RGB image
 image = Image.new("RGB", (width, height))
@@ -147,6 +161,8 @@ def lib_setup():
                 i = Image.open(IMAGE_PATH + noise_name + ".jpg")
             except:
                 i = Image.open(ASSET_PATH + "default.jpg")
+            if width > 128:
+                i = i.resize((width, 128))
             save_image.paste(i, (0,0))
             save_image.paste(img_info, (0, 108))
             text = noise_name.replace("_", " ")
@@ -182,6 +198,8 @@ def create_idle_image():
         # if no idle image found, draw a rectangle instead
         idle_image_draw = ImageDraw.Draw(idle_image_raw)
         idle_image_draw.rectangle((0, 0, width, height), fill=(0, 100, 200))
+    if width > 128:
+        idle_image_raw = idle_image_raw.resize((width, 128))
     idle_image.paste(idle_image_raw, (0,0))  # use idle image
     idle_draw = ImageDraw.Draw(idle_image)
     idle_image.paste(img_info, (0, 108))
@@ -209,6 +227,8 @@ def init_controller():
         draw.text((3, 10), text, font=font, fill=(255, 255, 0),)
     else:
         if USE_DISPLAY:
+            if width > 128:
+                image = image.resize((width, 128))
             disp.image(image)
     time.sleep(1)
     lib_setup()

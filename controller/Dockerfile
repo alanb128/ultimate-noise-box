@@ -5,11 +5,10 @@ WORKDIR /usr/src/app
 RUN \
     apt-get update && apt-get install -y ttf-dejavu libfreetype6-dev
 
-RUN \
-    pip3 install numpy pillow RPi.GPIO adafruit-circuitpython-rgb-display \
-    requests redis adafruit-circuitpython-seesaw
+COPY requirements.txt requirements.txt
+RUN pip3 install -r requirements.txt
 
-# *** tested versions of above libraries ***
+# *** tested versions of installed libraries ***
 # numpy 1.21.5
 # pillow 9.1.0
 # RPi.GPIO 0.7.1

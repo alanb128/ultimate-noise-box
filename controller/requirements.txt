@@ -1,0 +1,8 @@
+numpy==1.21.5 
+pillow==9.1.0 
+RPi.GPIO 
+adafruit-circuitpython-rgb-display==3.10.12
+requests
+redis==4.2.2
+adafruit-circuitpython-seesaw==1.10.8
+adafruit-circuitpython-tpa2016
